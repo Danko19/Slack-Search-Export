@@ -3,18 +3,20 @@ async function onBeforeRequestListener(details) {
 		|| details.requestBody.formData?.automatic?.includes('true'))
 		return;
 
-	const messages = await fetchAllMessages(details);
+	const apiUrl = details.url.match('.*(?=search\.modules)')[0];
+	const token = details.requestBody.formData.token[0];
+	const query = details.requestBody.formData.query[0];
+	
+	const messages = await fetchAllMessages(apiUrl, token, query);
 	console.log(messages);
 	const users = getReactionUsers(messages);
 	console.log(users);
 }
 
-async function fetchAllMessages(details){
-	const apiUrl = details.url.match('.*(?=search\.modules)')[0];
-	
+async function fetchAllMessages(apiUrl, token, query){	
 	const formData = new FormData();
-	formData.append('token', details.requestBody.formData.token[0]);
-	formData.append('query', details.requestBody.formData.query[0]);
+	formData.append('token', token);
+	formData.append('query', query);
 	formData.append('extra_message_data', '1');
 	formData.append('module', 'messages');
 	formData.append('automatic', true);
