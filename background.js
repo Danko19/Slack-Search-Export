@@ -5,6 +5,8 @@ async function onBeforeRequestListener(details) {
 
 	const messages = await fetchAllMessages(details);
 	console.log(messages);
+	const users = getReactionUsers(messages);
+	console.log(users);
 }
 
 async function fetchAllMessages(details){
@@ -38,6 +40,15 @@ async function fetchAllMessages(details){
 	} while (messages.length < total);
 	
 	return messages;
+}
+
+function getReactionUsers(messages){
+	const users = new Set();
+	for (const message of messages)
+		for (const reaction of message.reactions)
+			for (const user of reaction.users)
+				users.add(user);
+	return Array.from(users);
 }
 
 chrome.webRequest.onBeforeRequest.addListener(
