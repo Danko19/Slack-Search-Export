@@ -11,9 +11,11 @@ async function onBeforeRequestListener(details) {
 	console.log(messages);
 	const users = getReactionUsers(messages);
 	console.log(users);
+	const userNames = await fetchUserNames(apiUrl, token, users);
+	console.log(userNames);
 }
 
-async function fetchAllMessages(apiUrl, token, query){	
+async function fetchAllMessages(apiUrl, token, query){
 	const formData = new FormData();
 	formData.append('token', token);
 	formData.append('query', query);
@@ -51,6 +53,29 @@ function getReactionUsers(messages){
 			for (const user of reaction.users)
 				users.add(user);
 	return Array.from(users);
+}
+
+async function fetchUserNames(apiUrl, token, users){
+	const userNames = new Map();
+	const formData = new FormData();
+	formData.append('token', token);
+	
+	for (const user of users){
+		formData.set('user', user);
+		var userName = await fetch(apiUrl + 'users.info', {
+			method: 'POST',
+			body: formData,
+			credentials: 'include'
+		}).then(function(r) {
+			return r.json();
+		}).then(function(data) {
+			console.log(data);
+			return data.user.name;
+		});
+		userNames.set(user, userName);
+	}
+	
+	return userNames;
 }
 
 chrome.webRequest.onBeforeRequest.addListener(
