@@ -13,6 +13,13 @@ async function onBeforeRequestListener(details) {
 	console.log(users);
 	const userNames = await fetchUserNames(apiUrl, token, users);
 	console.log(userNames);
+
+	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+		console.log(tabs);
+		chrome.tabs.sendMessage(tabs[0].id, {messages: messages}, function(response) {
+			console.log(response.farewell);
+		});
+	});
 }
 
 async function fetchAllMessages(apiUrl, token, query){
