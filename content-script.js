@@ -1,9 +1,7 @@
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-    console.log(request);
-    console.log(sender);
-	saveFile('report.csv', JSON.stringify(request.messages));
-    sendResponse({farewell: "goodbye"});
+	saveFile(request.fileName, request.fileContent);
+	sendResponse({success: true});
   }
 );
 

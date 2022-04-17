@@ -13,13 +13,7 @@ async function onBeforeRequestListener(details) {
 	console.log(users);
 	const userNames = await fetchUserNames(apiUrl, token, users);
 	console.log(userNames);
-
-	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-		console.log(tabs);
-		chrome.tabs.sendMessage(tabs[0].id, {messages: messages}, function(response) {
-			console.log(response.farewell);
-		});
-	});
+	await saveFileRequest('search_export.csv', JSON.stringify(messages));
 }
 
 async function fetchAllMessages(apiUrl, token, query){
@@ -56,7 +50,7 @@ async function fetchAllMessages(apiUrl, token, query){
 function getReactionUsers(messages){
 	const users = new Set();
 	for (const message of messages)
-		for (const reaction of message.reactions)
+		for (const reaction of message.reactions ?? new Array())
 			for (const user of reaction.users)
 				users.add(user);
 	return Array.from(users);
@@ -83,6 +77,12 @@ async function fetchUserNames(apiUrl, token, users){
 	}
 	
 	return userNames;
+}
+
+function saveFileRequest(fileName, fileContent){
+	return chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+		chrome.tabs.sendMessage(tabs[0].id, {fileName: fileName, fileContent: fileContent});
+	});
 }
 
 chrome.webRequest.onBeforeRequest.addListener(
