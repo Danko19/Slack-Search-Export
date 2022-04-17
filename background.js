@@ -8,12 +8,10 @@ async function onBeforeRequestListener(details) {
 	const query = details.requestBody.formData.query[0];
 	
 	const messages = await fetchAllMessages(apiUrl, token, query);
-	console.log(messages);
 	const users = getReactionUsers(messages);
-	console.log(users);
 	const userNames = await fetchUserNames(apiUrl, token, users);
-	console.log(userNames);
-	await saveFileRequest('search_export.csv', JSON.stringify(messages));
+	const reportContent = buildReport(messages, userNames);
+	await saveFileRequest('search_export.csv', reportContent);
 }
 
 async function fetchAllMessages(apiUrl, token, query){
@@ -70,13 +68,45 @@ async function fetchUserNames(apiUrl, token, users){
 		}).then(function(r) {
 			return r.json();
 		}).then(function(data) {
-			console.log(data);
 			return data.user.name;
 		});
 		userNames.set(user, userName);
 	}
 	
 	return userNames;
+}
+
+function buildReport(messages, userNames){
+	const lineBreak = '\n';
+	const separator = ';';	
+	const report = [];
+	
+	appendLine('UserName', 'MessageText', 'MessageDate', 'MessageLink', 'ReactionsCount', 'ReactionsUsers');
+	
+	for(var message of messages){
+		var userName = message.username;
+		var messageText = message.text;
+		var messageDate = getDateTimeString(message.ts.split('.')[0]);
+		var messageLink = message.permalink;
+		var reactionsUsers = message.reactions
+			.filter(reaction => reaction.name.startsWith('muscle') || reaction.name === 'mechanical_arm')
+			.map(reaction => reaction.users)
+			.reduce((a, b) => a.concat(b))
+			.filter((item, pos, self) => self.indexOf(item) == pos)
+			.map(user => userNames.get(user));
+		var reactionsCount = reactionsUsers.length.toString();
+		appendLine(userName, messageText, messageDate, messageLink, reactionsCount, reactionsUsers.join(','));
+	}
+	
+	return report.map(line => line.map(value => value.replaceAll(separator, '').replaceAll(lineBreak, '')).join(separator)).join(lineBreak);
+	
+	function appendLine(userName, messageText, messageDate, messageLink, reactionsCount, reactionsUsers){
+		report.push([userName, messageText, messageDate, messageLink, reactionsCount, reactionsUsers]);
+	}
+}
+
+function getDateTimeString(unixTimestamp){
+	return new Date(unixTimestamp * 1000).toISOString();
 }
 
 function saveFileRequest(fileName, fileContent){
