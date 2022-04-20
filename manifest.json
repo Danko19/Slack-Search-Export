@@ -22,5 +22,10 @@
 	],
 	"background": {
 		"service_worker": "background.js"
+	},
+	"icons": {
+		"16": "biceps16.png",
+		"48": "biceps48.png",
+		"128": "biceps128.png"
 	}
 }
