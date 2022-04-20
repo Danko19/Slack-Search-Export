@@ -119,4 +119,13 @@ chrome.webRequest.onBeforeRequest.addListener(
 	onBeforeRequestListener,
 	{urls: ["https://*.slack.com/api/search.modules*"]},
 	["requestBody"]
-)
+);
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
+
+    if( request == "ping" ){
+        console.log(request);
+    }
+
+    sendResponse();
+});

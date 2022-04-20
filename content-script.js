@@ -12,3 +12,13 @@ function saveFile(fileName, stringContent){
 	a.click();
 	a.remove();
 }
+
+var wakeup = function(){
+    setTimeout(function(){
+        chrome.runtime.sendMessage('ping', function(response){
+            console.log(response);
+        });
+        wakeup();
+    }, 1000);
+}
+wakeup();
